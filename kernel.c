@@ -296,6 +296,7 @@ void get_command()
 			write(fdout, &tmp, 1);
 			clear_space(str);
 			if(str[strlen(str)-1] ==' ' ) str[strlen(str)-1] = '\0';
+			if(str[0] ==' ' ) shift_str(str, 0);
 			do_command(str);
 		}
 		
@@ -328,7 +329,7 @@ void do_command(char * command){
 	char str[100];
 	fdout = open("/dev/tty0/out", 0);
 	if(!strcmp(command,"help")){
-		strcpy(str, "The following command can be used.\r\nhello\r\necho\r\nhelp\r\n");
+		strcpy(str, "The following commands can be used....\r\nhello\r\necho\r\nhelp\r\n");
 		write(fdout, str, strlen(str)+1);
 	}
 		
