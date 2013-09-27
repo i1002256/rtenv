@@ -262,7 +262,7 @@ void get_command()
 	fdout = open("/dev/tty0/out", 0);
 	fdin = open("/dev/tty0/in", 0);
 	while(1){
-		strcpy(str, "command > ");
+		strcpy(str, "shell > ");
 		write(fdout, str, strlen(str)+1);
 		length = 0;
 		strcpy(str, "");
@@ -288,12 +288,14 @@ void get_command()
 					str[length] = '\0';
 				break;				
 			}
-		}while(c != '\r');
+		}while((c != '\r') && length<99);
 		if(length>0){
 			tmp = '\n';
 			write(fdout, &tmp, 1);
 			tmp = '\r';
 			write(fdout, &tmp, 1);
+			clear_space(str);
+			if(str[strlen(str)-1] ==' ' ) str[strlen(str)-1] = '\0';
 			do_command(str);
 		}
 		
@@ -305,9 +307,37 @@ void get_command()
 	}
 }
 
+void shift_str(char * str, int index){
+	int length = strlen(str);
+	int i;
+	for(i=index;i<length;i++){
+		if(i==(length-1))
+			str[i] = '\0';
+		else
+			str[i] = str[i+1];
+	} 
+}
+
+void clear_space(char * command){
+	int length = strlen(command);
+	while(strstr(command, "  "))
+		shift_str(command, strstr(command, "  ") - command);
+}
 void do_command(char * command){
+	int fdout;
+	char str[100];
+	fdout = open("/dev/tty0/out", 0);
+	if(!strcmp(command,"help")){
+		strcpy(str, "The following command can be used.\r\nhello\r\necho\r\nhelp\r\n");
+		write(fdout, str, strlen(str)+1);
+	}
+		
 	if(!strcmp(command,"hello"))
 		greeting();
+	if(!strncmp(command, "echo ", 4)){
+		write(fdout, &command[5], strlen(command)-4);
+	}
+		
 }
 
 void echo()
