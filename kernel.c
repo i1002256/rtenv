@@ -306,12 +306,12 @@ void queue_str_task(const char *str, int delay)
 
 void queue_str_task1()
 {
-	queue_str_task("Hello 1\n", 200);
+//	queue_str_task("Hello 1\n", 200);
 }
 
 void queue_str_task2()
 {
-	queue_str_task("Hello 2\n", 50);
+//	queue_str_task("Hello 2\n", 50);
 }
 
 void serial_readwrite_task()
