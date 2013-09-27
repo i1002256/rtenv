@@ -253,10 +253,67 @@ void greeting()
 	}
 }
 
+void get_command()
+{
+	int fdout, fdin;
+	int length;
+	char str[100];
+	char c, tmp;
+	fdout = open("/dev/tty0/out", 0);
+	fdin = open("/dev/tty0/in", 0);
+	while(1){
+		strcpy(str, "command > ");
+		write(fdout, str, strlen(str)+1);
+		length = 0;
+		strcpy(str, "");
+		do{
+			read(fdin, &c, 1);			
+			switch(c){
+				case '\x7f':
+					if(length>0){
+						tmp = '\b';
+						write(fdout, &tmp, 1);
+						tmp = '\0';
+						write(fdout, &tmp, 1);
+						tmp = '\b';
+						write(fdout, &tmp, 1);
+						str[--length] = '\0';						 
+					}
+				break;
+				case '\r' :
+				break;
+				default :
+					write(fdout, &c, 1);
+					str[length++] = c;
+					str[length] = '\0';
+				break;				
+			}
+		}while(c != '\r');
+		if(length>0){
+			tmp = '\n';
+			write(fdout, &tmp, 1);
+			tmp = '\r';
+			write(fdout, &tmp, 1);
+			do_command(str);
+		}
+		
+		tmp = '\n';
+		write(fdout, &tmp, 1);
+		tmp = '\r';
+		write(fdout, &tmp, 1);
+
+	}
+}
+
+void do_command(char * command){
+	if(!strcmp(command,"hello"))
+		greeting();
+}
+
 void echo()
 {
 	int fdout, fdin;
-	char c;
+	char c,tmp;
 	fdout = open("/dev/tty0/out", 0);
 	fdin = open("/dev/tty0/in", 0);
 
@@ -366,9 +423,11 @@ void first()
 	if (!fork()) setpriority(0, 0), serialout(USART2, USART2_IRQn);
 	if (!fork()) setpriority(0, 0), serialin(USART2, USART2_IRQn);
 	if (!fork()) rs232_xmit_msg_task();
-	if (!fork()) setpriority(0, PRIORITY_DEFAULT - 10), queue_str_task1();
-	if (!fork()) setpriority(0, PRIORITY_DEFAULT - 10), queue_str_task2();
-	if (!fork()) setpriority(0, PRIORITY_DEFAULT - 10), serial_readwrite_task();
+//	if (!fork()) setpriority(0, PRIORITY_DEFAULT - 10), queue_str_task1();
+//	if (!fork()) setpriority(0, PRIORITY_DEFAULT - 10), queue_str_task2();
+//	if (!fork()) setpriority(0, PRIORITY_DEFAULT - 10), echo();
+//	if (!fork()) setpriority(0, PRIORITY_DEFAULT - 10), serial_readwrite_task();
+	if (!fork()) setpriority(0, PRIORITY_DEFAULT - 10), get_command();
 
 	setpriority(0, PRIORITY_LIMIT);
 
